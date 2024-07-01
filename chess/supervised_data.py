@@ -1,3 +1,4 @@
+import time
 import lichess.api
 import matplotlib.pyplot as plt
 import chess.pgn
@@ -12,6 +13,8 @@ def position_reader(filepath):
     pgn = open(filepath)
     while True:
         game = chess.pgn.read_game(pgn)
+        if game is None:
+            return
         result = game.headers["Result"]
         while game is not None and game.next() is not None:
             board = game.board()
@@ -49,17 +52,23 @@ if __name__ == "__main__":
     gen = position_reader(path_to_games)
     pgn = open(path_to_games)
     count = 0
+    start = time.time()
     for pos in gen:
+        # rep = utils.get_position_rep(pos)
+        if count > 100000:
+            print(time.time() - start)
+            break
+        count += 1
         # print(move_rep(pos[1])[:,:,6])
-        print(pos[1])
-        rep = utils.get_move_rep(pos[1])
-        utils.show_move_rep(rep)
-        break
-        if pos[1].promotion is not None and pos[1].promotion != 5:
-            print(count, pos[1], chess.piece_name(pos[1].promotion), chess.piece_symbol(pos[1].promotion), pos[1].promotion)
-            rep = utils.get_move_rep(pos[1])
-            utils.show_move_rep(rep)
-            break
-        count+=1
-        if count > 1000000:
-            break
+        # print(pos[1])
+        # rep = utils.get_move_rep(pos[1])
+        # utils.show_move_rep(rep)
+        # break
+        # if pos[1].promotion is not None and pos[1].promotion != 5:
+        #     print(count, pos[1], chess.piece_name(pos[1].promotion), chess.piece_symbol(pos[1].promotion), pos[1].promotion)
+        #     rep = utils.get_move_rep(pos[1])
+        #     utils.show_move_rep(rep)
+        #     break
+        # count+=1
+        # if count > 1000000:
+        #     break

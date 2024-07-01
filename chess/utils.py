@@ -2,6 +2,7 @@ import chess
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+
 piece_layer = {"P":0,"R":1,"N":2,"B":3,"Q":4, "K":5,"p":6,"r":7,"n":8,"b":9,"q":10, "k":11}
 def get_board_rep(board: chess.Board):
     board_rep = np.zeros((20,8,8),dtype=np.float32)
@@ -34,6 +35,9 @@ def get_board_rep(board: chess.Board):
 def to_coords(square: chess.Square):
     return 7-chess.square_rank(square),chess.square_file(square)
 
+def from_coords(x, y):
+    return chess.square_name(chess.square(x,7-y))
+
 def get_position_rep(position):
     board, move, winning = position
     return torch.tensor(get_board_rep(board)), torch.tensor(get_move_rep(move)), torch.tensor([winning]).float()
@@ -52,12 +56,27 @@ def get_move_rep(move: chess.Move):
     return rep.reshape(4864)
     
 def show_move_rep(rep):
+    rep = torch.nn.functional.softmax(rep.cpu(), dim=1).numpy(force=True)
+    vmin, vmax = np.min(rep), np.max(rep)
     rep = rep.reshape(76,8,8)
-    fig,axs = plt.subplots(4,19)
+    fig,axs = plt.subplots(4,19,subplot_kw={"xticks":[], "yticks":[]},figsize=(20,5))
     for i in range(4):
         for j in range(19):
             layer = 19*i + j
-            axs[i][j].imshow(rep[layer,:,:],vmin=0, vmax=1)
+            axs[i][j].imshow(rep[layer,:,:],vmin=vmin, vmax=vmax)
             if layer < 64:
                 axs[i][j].set_title(f'{chess.square_name(layer)}')
     plt.show()
+
+def sample_move(move_rep):
+    move_rep = torch.nn.functional.softmax(move_rep.cpu()).numpy(force=True).reshape(4864)
+    indices = np.arange(4864)
+    index = np.random.choice(indices, p=move_rep)
+    move = np.zeros((1,4864))
+    move[0][index] = 1
+    index = move.reshape(76,8,8).nonzero()
+    from_square = index[1][0] // 19 + index[1][0]%19
+    print(f"{chess.square_name(index[0][0])} to {from_coords(index[2][0], index[1][0])}")
+    # layer = index // 19 + index % 19
+    # print(layer)
+    return move
