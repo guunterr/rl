@@ -1,6 +1,7 @@
 import time
 import lichess.api
 import matplotlib.pyplot as plt
+import chess
 import chess.pgn
 import numpy as np
 import itertools
@@ -36,6 +37,40 @@ def position_reader(filepath):
                 raise RuntimeError("Don't know if this game is a win or a draw")
             yield board, move, winning
             game = game.next()
+            
+def game_reader(filepath):
+    pgn = open(filepath)
+    while True:
+        game = chess.pgn.read_game(pgn)
+        if game is None:
+            return
+        yield game
+        
+def get_positions(game: chess.pgn.Game):
+    return list(generate_positions(game))
+
+def generate_positions(game: chess.pgn.Game):
+    result = game.headers["Result"]
+    while game is not None and game.next() is not None:
+        board = game.board()
+        move = game.next().move
+        player=board.turn
+        if result[1] == "/":
+            winning = 0
+        elif result[0] == "1":
+            if player == chess.WHITE:
+                winning = 1
+            else:
+                winning = -1
+        elif result[0] == "0":
+            if player == chess.WHITE:
+                winning = -1
+            else:
+                winning = 1
+        else:
+            raise RuntimeError("Don't know if this game is a win or a draw")
+        yield board, move, winning
+        game = game.next()
 
 
         
