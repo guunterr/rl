@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import torch
 
 piece_layer = {"P":0,"R":1,"N":2,"B":3,"Q":4, "K":5,"p":6,"r":7,"n":8,"b":9,"q":10, "k":11}
+direction = {0:"left", 1:"fwd", 2:"right"}
+move_layer_names = {layer : f"{chess.piece_name(2 + layer // 3)[0]} {direction[layer% 3]}" for layer in range(0,12)}
 def get_board_rep(board: chess.Board):
     board_rep = np.zeros((20,8,8),dtype=np.float32)
     pieces = board.board_fen().split("/")
@@ -66,6 +68,8 @@ def show_move_rep(rep):
             axs[i][j].imshow(rep[layer,:,:],vmin=vmin, vmax=vmax)
             if layer < 64:
                 axs[i][j].set_title(f'{chess.square_name(layer)}')
+            else:
+                axs[i][j].set_title(f'{move_layer_names[layer-64]}')
     plt.show()
 
 def sample_move(move_rep):

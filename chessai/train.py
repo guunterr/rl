@@ -39,5 +39,6 @@ def train_loop(dataloader: DataLoader, model, policy_loss_fn, value_loss_fn, opt
             'model_state_dict':model.state_dict(),
             'optimizer_state_dict' : optimizer.state_dict(),
         }, f"checkpoints/{epoch}/checkpoint_{epoch}_end.pt")
+    return losses
 
 
