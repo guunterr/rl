@@ -2,7 +2,7 @@ import os
 os.environ["ROCM_PATH"] = "/opt/rocm"
 os.environ["HSA_OVERRIDE_GFX_VERSION"] = "10.3.0"
 
-import chess_net, utils, torch, numpy as np, supervised_data, chess
+import chess_net, utils, torch, numpy as np, parse_data, chess
 
 def get_move(board: chess.Board):
     while True:

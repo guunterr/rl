@@ -9,7 +9,7 @@ import torch
 import math
 from utils import *
 from chess_net import ChessModel
-from supervised_data import position_reader, game_reader, generate_positions, get_positions
+from parse_data import position_reader, game_reader, generate_positions, get_positions
 from torch.utils.data import DataLoader
 import time
 from timeit import default_timer as timer
