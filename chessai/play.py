@@ -18,7 +18,7 @@ def get_move(board: chess.Board):
 
 if __name__ == "__main__":
     model = chess_net.ChessModel().to('cuda')
-    state_dict = torch.load("/home/gerard/Documents/Personal/Programming/rl/chess/checkpoint_1_1600.pt")['model_state_dict']
+    state_dict = torch.load("/home/gerard/Documents/Personal/Programming/rl/chessai/checkpoints/1/checkpoint_0_41600.pt")['model_state_dict']
     model.load_state_dict(state_dict)
     model.eval()
     board = chess.Board()
@@ -33,11 +33,15 @@ if __name__ == "__main__":
         board_rep = utils.get_board_rep(board)
         board_rep_tensor = torch.tensor(board_rep).to('cuda', torch.float32)
         p, v = model(board_rep_tensor.unsqueeze(0))
-        p = torch.nn.functional.softmax(p)
-        p = p
-        move = utils.sample_move(p)
-        # utils.show_move_rep(move.reshape(76,8,8))
-        print("ENTER AI MOVE: ")
-        board.push(get_move(board))
+        # utils.show_move_rep(p)
+        while True:
+            rep, move = utils.sample_move(p)
+            if move in board.legal_moves:
+                break
+        rep = torch.tensor(rep)
+        # utils.show_move_rep(rep.reshape(76,8,8), False)
+        # print("ENTER AI MOVE: ")
+        board.push(move)
+        print(board)
         print("ENTER PLAYER MOVE: ")
         board.push(get_move(board))
