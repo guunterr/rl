@@ -53,6 +53,11 @@ class ChessModel(nn.Module):
             self.build_residual_block(256),
             self.build_residual_block(256),
             self.build_residual_block(256),
+            self.build_residual_block(256),
+            self.build_residual_block(256),
+            self.build_residual_block(256),
+            self.build_residual_block(256),
+            self.build_residual_block(256),
             self.build_residual_block(256)
         )
     def build_residual_block(self,channels):

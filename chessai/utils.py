@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import torch
 
 piece_layer = {"P":0,"R":1,"N":2,"B":3,"Q":4, "K":5,"p":6,"r":7,"n":8,"b":9,"q":10, "k":11}
+direction = {0:"left", 1:"fwd", 2:"right"}
+move_layer_names = {layer : f"{chess.piece_name(2 + layer // 3)[0]} {direction[layer% 3]}" for layer in range(0,12)}
+promotion_layers = {layer : (2+layer//3,layer % 3 - 1) for layer in range(0,12)}
 def get_board_rep(board: chess.Board):
     board_rep = np.zeros((20,8,8),dtype=np.float32)
     pieces = board.board_fen().split("/")
@@ -55,8 +58,11 @@ def get_move_rep(move: chess.Move):
         rep[from_square,x,y] = 1
     return rep.reshape(4864)
     
-def show_move_rep(rep):
-    rep = torch.nn.functional.softmax(rep.cpu(), dim=1).numpy(force=True)
+def show_move_rep(rep, normalize_probabilities = True):
+    if normalize_probabilities:
+        rep = torch.nn.functional.softmax(rep.cpu(), dim=1).numpy(force=True)
+    else:
+        rep = rep.cpu().numpy(force=True)
     vmin, vmax = np.min(rep), np.max(rep)
     rep = rep.reshape(76,8,8)
     fig,axs = plt.subplots(4,19,subplot_kw={"xticks":[], "yticks":[]},figsize=(20,5))
@@ -66,17 +72,23 @@ def show_move_rep(rep):
             axs[i][j].imshow(rep[layer,:,:],vmin=vmin, vmax=vmax)
             if layer < 64:
                 axs[i][j].set_title(f'{chess.square_name(layer)}')
+            else:
+                axs[i][j].set_title(f'{move_layer_names[layer-64]}')
     plt.show()
 
 def sample_move(move_rep):
-    move_rep = torch.nn.functional.softmax(move_rep.cpu()).numpy(force=True).reshape(4864)
+    move_rep = torch.nn.functional.softmax(move_rep.cpu(), dim=1).numpy(force=True).reshape(4864)
     indices = np.arange(4864)
     index = np.random.choice(indices, p=move_rep)
-    move = np.zeros((1,4864))
-    move[0][index] = 1
-    index = move.reshape(76,8,8).nonzero()
+    rep = np.zeros((1,4864))
+    rep[0][index] = 1
+    index = rep.reshape(76,8,8).nonzero()
+    print(index)
+    if index[0][0] >= 64:
+        print(promotion_layers[index[0][0] - 64])
     from_square = index[1][0] // 19 + index[1][0]%19
     print(f"{chess.square_name(index[0][0])} to {from_coords(index[2][0], index[1][0])}")
+    move = chess.Move.from_uci(f"{chess.square_name(index[0][0])}{from_coords(index[2][0], index[1][0])}")
     # layer = index // 19 + index % 19
     # print(layer)
-    return move
+    return rep, move
