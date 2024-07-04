@@ -60,7 +60,7 @@ def get_move_rep(move: chess.Move):
     
 def show_move_rep(rep, normalize_probabilities = True):
     if normalize_probabilities:
-        rep = torch.nn.functional.softmax(rep.cpu(), dim=1).numpy(force=True)
+        rep = torch.nn.functional.softmax(rep.cpu().reshape(4864), dim=1).numpy(force=True)
     else:
         rep = rep.cpu().numpy(force=True)
     vmin, vmax = np.min(rep), np.max(rep)
@@ -75,6 +75,9 @@ def show_move_rep(rep, normalize_probabilities = True):
             else:
                 axs[i][j].set_title(f'{move_layer_names[layer-64]}')
     plt.show()
+    
+def move_rep_to_numpy(move_rep):
+    return move_rep.cpu().numpy(force=True)
 
 def sample_move(move_rep):
     move_rep = torch.nn.functional.softmax(move_rep.cpu(), dim=1).numpy(force=True).reshape(4864)
